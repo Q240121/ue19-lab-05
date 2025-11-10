@@ -1,4 +1,4 @@
-name: Build and Publish Docker image
+name: Build, Scan and Publish Docker image
 
 on:
   push:
@@ -24,7 +24,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        id: build
+        with:
+          context: .
+          push: false
+          tags: ghcr.io/q240121/ue19-lab-05:latest
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/q240121/ue19-lab-05:latest
+          format: table
+          exit-code: 1
+          severity: CRITICAL,HIGH
+
+      - name: Push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
